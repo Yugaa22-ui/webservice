@@ -14,40 +14,40 @@ $method = $_SERVER["REQUEST_METHOD"];
 switch ($method) {
     case "GET":
         if (isset($_GET['id'])) {
-            getDetailProvince($conn, $_GET['id']);
+            getDetailCity($conn, $_GET['id']);
         } else {
-            getAllProvince($conn);
+            getAllCity($conn);
         }
         break;
-    
+
     case "POST":
         $data = json_decode(file_get_contents("php://input"), true);
-        createProvince($conn, $data);
+        createCity($conn, $data);
         break;
-    
+
     case "PUT":
         if (!isset($_GET['id'])) {
             echo json_encode([
                 "status"  => "error",
-                "message" => "ID provinsi harus diisi"
+                "message" => "ID kota harus diisi"
             ]);
             exit();
         }
 
         $data = json_decode(file_get_contents("php://input"), true);
-        updateProvince($conn, $_GET['id'], $data);
+        updateCity($conn, $_GET['id'], $data);
         break;
 
     case "DELETE":
         if (!isset($_GET['id'])) {
             echo json_encode([
                 "status"  => "error",
-                "message" => "ID provinsi harus diisi"
+                "message" => "ID kota harus diisi"
             ]);
             exit();
         }
 
-        deleteProvince($conn, $_GET['id']);
+        deleteCity($conn, $_GET['id']);
         break;
 
     default:
@@ -58,8 +58,8 @@ switch ($method) {
         break;
 }
 
-function getAllProvince($conn) {
-    $query = $conn->query("SELECT * FROM province");
+function getAllCity($conn) {
+    $query = $conn->query("SELECT city.*, province.province_name FROM city INNER JOIN province ON city.province_id = province.province_id");
     $data = [];
     while ($row = $query->fetch_assoc()) {
         $data[] = $row;
@@ -71,8 +71,8 @@ function getAllProvince($conn) {
     ]);
 }
 
-function getDetailProvince($conn, $id) {
-    $query = $conn->query("SELECT * FROM province WHERE province_id = $id");
+function getDetailCity($conn, $id) {
+    $query = $conn->query("SELECT city.*, province.province_name FROM city INNER JOIN province ON city.province_id = province.province_id WHERE city_id = $id");
     $data = $query->fetch_assoc();
 
     echo json_encode([
@@ -81,48 +81,50 @@ function getDetailProvince($conn, $id) {
     ]);
 }
 
-function createProvince($conn, $data) {
-    if (!isset($data['name']) || empty($data['name'])) {
+function createCity($conn, $data) {
+    if (!isset($data['name']) || empty($data['name']) || !isset($data['province_id'])) {
         echo json_encode([
             "status"  => "error",
-            "message" => "Nama provinsi harus diisi"
+            "message" => "Nama kota dan ID provinsi harus diisi"
         ]);
         return;
     }
 
     $name = $data['name'];
-    $conn->query("INSERT INTO province (province_name) VALUES ('$name')");
+    $province_id = $data['province_id'];
+    $conn->query("INSERT INTO city (city_name, province_id) VALUES ('$name', $province_id)");
 
     echo json_encode([
         "status"  => "success",
-        "message" => "Province added successfully"
+        "message" => "City added successfully"
     ]);
 }
 
-function updateProvince($conn, $id, $data) {
-    if (!isset($data['name']) || empty($data['name'])) {
+function updateCity($conn, $id, $data) {
+    if (!isset($data['name']) || empty($data['name']) || !isset($data['province_id'])) {
         echo json_encode([
             "status"  => "error",
-            "message" => "Nama provinsi harus diisi"
+            "message" => "Nama kota dan ID provinsi harus diisi"
         ]);
         return;
     }
 
     $name = $data['name'];
-    $conn->query("UPDATE province SET province_name = '$name' WHERE province_id = $id");
+    $province_id = $data['province_id'];
+    $conn->query("UPDATE city SET city_name = '$name', province_id = $province_id WHERE city_id = $id");
 
     echo json_encode([
         "status"  => "success",
-        "message" => "Province updated successfully"
+        "message" => "City updated successfully"
     ]);
 }
 
-function deleteProvince($conn, $id) {
-    $conn->query("DELETE FROM province WHERE province_id = $id");
+function deleteCity($conn, $id) {
+    $conn->query("DELETE FROM city WHERE city_id = $id");
 
     echo json_encode([
         "status"  => "success",
-        "message" => "Province deleted successfully"
+        "message" => "City deleted successfully"
     ]);
 }
 ?>
