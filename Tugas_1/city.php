@@ -34,10 +34,18 @@ switch ($method) {
             exit();
         }
 
-        $data = json_decode(file_get_contents("php://input"), true);
+        $raw = file_get_contents("php://input");
+        $data = json_decode($raw, true);
+
+        // Jika JSON gagal terbaca, coba baca data urlencoded
+        if ($data === null) {
+            parse_str($raw, $data);
+        }
+
         updateCity($conn, $_GET['id'], $data);
         break;
 
+        
     case "DELETE":
         if (!isset($_GET['id'])) {
             echo json_encode([
